@@ -1,15 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useChat } from '../hooks/useChat';
-import { ChatSidebar } from '../components/ChatSidebar';
+import { ChatSidebar, ViewType } from '../components/ChatSidebar';
 import { ChatInterface } from '../components/ChatInterface';
+import { WalletView } from '../components/WalletView';
+import { ProvidersView } from '../components/ProvidersView';
 import { WakuStatus } from '../components/WakuStatus';
+import { WalletConnectButton } from '../components/WalletConnectButton';
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
+  const [currentView, setCurrentView] = useState<ViewType>('chat');
+  
   const {
     sessions,
     currentSession,
@@ -56,6 +59,8 @@ export default function Home() {
           onSelectSession={selectSession}
           onCreateSession={createNewSession}
           onDeleteSession={deleteSession}
+          currentView={currentView}
+          onSelectView={setCurrentView}
         />
         
         <SidebarInset className="flex-1 flex flex-col min-w-0 h-full relative bg-[#09090b]">
@@ -78,24 +83,38 @@ export default function Home() {
                 error={wakuError}
               />
               
-              <Button 
-                variant="outline" 
-                className="bg-white hover:bg-zinc-200 text-black border-0 h-9 gap-2 font-medium hidden md:flex"
-              >
-                <Download className="w-4 h-4" />
-                Export
-              </Button>
+              <WalletConnectButton />
             </div>
           </header>
 
-          {/* Main Chat Content */}
+          {/* Main Content Area */}
           <div className="flex-1 flex flex-col min-h-0 bg-[#09090b] px-2 pb-4">
-            <ChatInterface
-              session={currentSession}
-              messages={currentMessages}
-              onSendMessage={sendMessage}
-              isLoading={isLoading}
-            />
+            {currentView === 'chat' && (
+              <ChatInterface
+                session={currentSession}
+                messages={currentMessages}
+                onSendMessage={sendMessage}
+                isLoading={isLoading}
+              />
+            )}
+            
+            {currentView === 'wallet' && (
+              <div className="flex-1 overflow-y-auto">
+                <WalletView />
+              </div>
+            )}
+
+            {currentView === 'providers' && (
+              <div className="flex-1 overflow-y-auto">
+                <ProvidersView />
+              </div>
+            )}
+
+            {currentView === 'settings' && (
+              <div className="flex-1 flex items-center justify-center text-zinc-500">
+                Settings View (Coming Soon)
+              </div>
+            )}
           </div>
         </SidebarInset>
       </div>

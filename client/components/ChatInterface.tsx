@@ -2,11 +2,13 @@ import { useEffect, useRef } from 'react';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { ChatMessage as ChatMessageType, ChatSession } from '../types/chat';
+import { useChat } from '../hooks/useChat';
 import { 
   Plane, 
   Lightbulb, 
   BookOpen, 
-  RotateCcw
+  RotateCcw,
+  ShieldCheck
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent } from '@/components/ui/card';
@@ -21,6 +23,7 @@ interface ChatInterfaceProps {
 }
 
 export const ChatInterface = ({ session, messages, onSendMessage, isLoading }: ChatInterfaceProps) => {
+  const { selectedProvider } = useChat();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -55,10 +58,27 @@ export const ChatInterface = ({ session, messages, onSendMessage, isLoading }: C
 
   return (
     <LayoutContainer>
+      {/* Selected Provider Header */}
+      {selectedProvider && (
+        <div className="absolute top-0 left-0 right-0 z-20 bg-[#18181b]/80 backdrop-blur-md border-b border-zinc-800 px-4 py-2 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-[#00ffa3] animate-pulse"></div>
+            <span className="text-xs text-zinc-400">Connected to:</span>
+            <span className="text-sm font-medium text-white flex items-center gap-1.5">
+              {selectedProvider.name}
+              <ShieldCheck className="w-3 h-3 text-[#00ffa3]" />
+            </span>
+          </div>
+          <div className="text-xs text-zinc-500">
+            {selectedProvider.pricePerPrompt} / msg
+          </div>
+        </div>
+      )}
+
       {/* Scrollable Content Area */}
       <div className="flex-1 min-h-0 relative">
         <ScrollArea className="h-full px-0">
-          <div className="max-w-[90%] mx-auto space-y-8 py-6 pb-32">
+          <div className={`max-w-[90%] mx-auto space-y-8 pb-32 ${selectedProvider ? 'pt-14' : 'py-6'}`}>
             {/* Chat History Section (Visible when no active chat or at top) */}
             {messages.length === 0 && (
               <section>
@@ -150,7 +170,9 @@ export const ChatInterface = ({ session, messages, onSendMessage, isLoading }: C
                 <div className="flex-1 flex flex-col items-center justify-center text-center p-8 opacity-50 mt-20">
                   <h3 className="text-lg font-medium text-white mb-2">Start a conversation</h3>
                   <p className="text-sm text-zinc-500 max-w-md">
-                    Start a conversation below to see your active chat here.
+                    {selectedProvider 
+                      ? `Chatting with ${selectedProvider.name} (${selectedProvider.model})`
+                      : 'Select a provider from the sidebar to start chatting securely.'}
                   </p>
                 </div>
               )}
@@ -163,7 +185,7 @@ export const ChatInterface = ({ session, messages, onSendMessage, isLoading }: C
       <div className="flex-shrink-0 absolute bottom-0 left-0 right-0 z-20 pointer-events-none">
         <div className="bg-gradient-to-t from-[#18181b] via-[#18181b] to-transparent pt-10 pb-2">
           <div className="pointer-events-auto">
-            <ChatInput onSendMessage={onSendMessage} disabled={isLoading} />
+            <ChatInput onSendMessage={onSendMessage} disabled={isLoading || !selectedProvider} />
           </div>
         </div>
       </div>

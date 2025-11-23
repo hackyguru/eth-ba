@@ -1,3 +1,5 @@
+import { ProviderProfile } from './waku';
+
 export interface ChatSession {
   id: string;
   title: string;
@@ -11,10 +13,12 @@ export interface ChatMessage {
   content: string;
   role: 'user' | 'assistant';
   timestamp: string;
+  txHash?: string; // Payment proof
 }
 
 export interface ChatState {
   sessions: ChatSession[];
   currentSessionId: string | null;
   messages: { [sessionId: string]: ChatMessage[] };
-} 
+  selectedProvider: ProviderProfile | null;
+}

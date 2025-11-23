@@ -23,12 +23,16 @@ import {
 } from '@/components/ui/sidebar';
 import { Card } from '@/components/ui/card';
 
+export type ViewType = 'chat' | 'providers' | 'wallet' | 'settings';
+
 interface ChatSidebarProps {
   sessions: ChatSession[];
   currentSessionId: string | null;
   onSelectSession: (sessionId: string) => void;
   onCreateSession: () => void;
   onDeleteSession: (sessionId: string) => void;
+  currentView: ViewType;
+  onSelectView: (view: ViewType) => void;
 }
 
 export const ChatSidebar = ({
@@ -37,6 +41,8 @@ export const ChatSidebar = ({
   onSelectSession,
   onCreateSession,
   onDeleteSession,
+  currentView,
+  onSelectView,
 }: ChatSidebarProps) => {
   const handleDeleteSession = (e: React.MouseEvent, sessionId: string) => {
     e.stopPropagation();
@@ -46,10 +52,10 @@ export const ChatSidebar = ({
   };
 
   const navigationItems = [
-    { name: 'Chat', icon: MessageSquare, active: true },
-    { name: 'Providers', icon: Globe, active: false },
-    { name: 'Wallet', icon: Wallet, active: false },
-    { name: 'Settings', icon: Settings, active: false },
+    { name: 'Chat', icon: MessageSquare, id: 'chat' as ViewType },
+    { name: 'Providers', icon: Globe, id: 'providers' as ViewType },
+    { name: 'Wallet', icon: Wallet, id: 'wallet' as ViewType },
+    { name: 'Settings', icon: Settings, id: 'settings' as ViewType },
   ];
 
   return (
@@ -71,13 +77,14 @@ export const ChatSidebar = ({
           {navigationItems.map((item) => (
             <SidebarMenuItem key={item.name}>
               <SidebarMenuButton
+                onClick={() => onSelectView(item.id)}
                 className={`h-10 ${
-                  item.active 
+                  currentView === item.id
                     ? 'bg-zinc-800/50 text-white font-medium' 
                     : 'text-zinc-400 hover:text-white hover:bg-zinc-800/30'
                 }`}
               >
-                <item.icon className={item.active ? "text-[#f97316]" : "text-zinc-400"} />
+                <item.icon className={currentView === item.id ? "text-[#f97316]" : "text-zinc-400"} />
                 <span>{item.name}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -92,7 +99,10 @@ export const ChatSidebar = ({
             <Button
               variant="ghost"
               size="icon"
-              onClick={onCreateSession}
+              onClick={() => {
+                onSelectView('chat');
+                onCreateSession();
+              }}
               className="h-4 w-4 text-zinc-400 hover:text-white hover:bg-transparent p-0"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -104,10 +114,13 @@ export const ChatSidebar = ({
               {sessions.slice(0, 5).map((session) => (
                 <SidebarMenuItem key={session.id}>
                   <SidebarMenuButton
-                    onClick={() => onSelectSession(session.id)}
-                    isActive={currentSessionId === session.id}
+                    onClick={() => {
+                      onSelectView('chat');
+                      onSelectSession(session.id);
+                    }}
+                    isActive={currentView === 'chat' && currentSessionId === session.id}
                     className={`h-9 ${
-                      currentSessionId === session.id 
+                      currentView === 'chat' && currentSessionId === session.id 
                         ? 'bg-zinc-800/50 text-white' 
                         : 'text-zinc-400 hover:text-white hover:bg-zinc-800/30'
                     }`}
