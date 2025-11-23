@@ -100,7 +100,7 @@ export const ChatSidebar = ({
           </div>
           
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="gap-2">
               {sessions.slice(0, 5).map((session) => (
                 <SidebarMenuItem key={session.id}>
                   <SidebarMenuButton
