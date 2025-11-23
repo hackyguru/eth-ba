@@ -16,9 +16,15 @@ export interface ChatMessage {
   txHash?: string; // Payment proof
 }
 
+export interface UserProfile {
+  name: string;
+  avatar: string;
+}
+
 export interface ChatState {
   sessions: ChatSession[];
   currentSessionId: string | null;
   messages: { [sessionId: string]: ChatMessage[] };
   selectedProvider: ProviderProfile | null;
+  userProfile?: UserProfile;
 }

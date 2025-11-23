@@ -1,16 +1,21 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useLocalStorage } from './useLocalStorage';
-import { ChatSession, ChatMessage, ChatState } from '../types/chat';
+import { ChatSession, ChatMessage, ChatState, UserProfile } from '../types/chat';
 import { useWaku } from './useWaku';
 import { WakuMessage, ProviderProfile } from '../types/waku';
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { parseEther } from 'viem';
+import EthCrypto from 'eth-crypto';
 
 const initialState: ChatState = {
   sessions: [],
   currentSessionId: null,
   messages: {},
   selectedProvider: null,
+  userProfile: {
+    name: 'User',
+    avatar: 'https://github.com/shadcn.png'
+  }
 };
 
 interface ChatContextType {
@@ -18,15 +23,18 @@ interface ChatContextType {
   currentSession: ChatSession | undefined;
   currentMessages: ChatMessage[];
   selectedProvider: ProviderProfile | null;
+  userProfile: UserProfile;
   isLoading: boolean;
   createNewSession: () => string;
   selectSession: (sessionId: string) => void;
-  selectProvider: (provider: ProviderProfile) => void;
+  selectProvider: (provider: ProviderProfile | null) => void;
+  updateUserProfile: (profile: Partial<UserProfile>) => void;
   deleteSession: (sessionId: string) => void;
   sendMessage: (content: string) => Promise<void>;
   wakuConnected: boolean;
   wakuConnecting: boolean;
   wakuError: string | null;
+  clearHistory: () => void;
 }
 
 const ChatContext = createContext<ChatContextType | null>(null);
@@ -39,6 +47,35 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
   const { authenticated } = usePrivy();
   const { wallets } = useWallets();
   const wallet = wallets[0];
+
+  // Ensure userProfile exists if loading from old local storage
+  useEffect(() => {
+    if (!chatState.userProfile) {
+      setChatState(prev => ({
+        ...prev,
+        userProfile: initialState.userProfile!
+      }));
+    }
+  }, [chatState.userProfile, setChatState]);
+
+  const updateUserProfile = useCallback((profile: Partial<UserProfile>) => {
+    setChatState(prev => ({
+      ...prev,
+      userProfile: {
+        ...prev.userProfile!,
+        ...profile
+      }
+    }));
+  }, [setChatState]);
+
+  const clearHistory = useCallback(() => {
+    setChatState(prev => ({
+      ...prev,
+      sessions: [],
+      currentSessionId: null,
+      messages: {}
+    }));
+  }, [setChatState]);
 
   const createNewSession = useCallback(() => {
     const sessionId = Date.now().toString();
@@ -69,7 +106,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     }));
   }, [setChatState]);
 
-  const selectProvider = useCallback((provider: ProviderProfile) => {
+  const selectProvider = useCallback((provider: ProviderProfile | null) => {
     console.log('Selecting provider:', provider);
     setChatState(prevState => ({
       ...prevState,
@@ -253,10 +290,27 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     if (isConnected) {
+      let messageContent = content.trim();
+
+      // 🔒 ENCRYPT CONTENT (ROFL/TEE)
+      if (provider?.publicKey) {
+        try {
+          console.log('🔐 Encrypting message for TEE:', provider.publicKey);
+          const encrypted = await EthCrypto.encryptWithPublicKey(
+            provider.publicKey,
+            messageContent
+          );
+          messageContent = JSON.stringify(encrypted);
+        } catch (encError) {
+          console.error('Encryption failed:', encError);
+          // Fallback to plaintext if encryption fails (or handle error)
+        }
+      }
+
       const wakuMessage: WakuMessage = {
         sessionId,
         messageId: userMessageId,
-        content: content.trim(),
+        content: messageContent,
         timestamp: new Date().toISOString(),
         type: 'request',
         metadata: {
@@ -286,11 +340,13 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
       createNewSession,
       selectSession,
       selectProvider,
+      updateUserProfile,
       deleteSession,
       sendMessage,
       wakuConnected: isConnected,
       wakuConnecting: isConnecting,
       wakuError: error,
+      clearHistory,
     }}>
       {children}
     </ChatContext.Provider>

@@ -4,6 +4,7 @@ import { ChatSidebar, ViewType } from '../components/ChatSidebar';
 import { ChatInterface } from '../components/ChatInterface';
 import { WalletView } from '../components/WalletView';
 import { ProvidersView } from '../components/ProvidersView';
+import { SettingsView } from '../components/SettingsView';
 import { WakuStatus } from '../components/WakuStatus';
 import { WalletConnectButton } from '../components/WalletConnectButton';
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
@@ -25,6 +26,7 @@ export default function Home() {
     wakuConnected,
     wakuConnecting,
     wakuError,
+    selectedProvider,
   } = useChat();
 
   // Handle client-side mounting and session creation
@@ -69,7 +71,7 @@ export default function Home() {
             <div className="flex items-center gap-4">
               <SidebarTrigger className="text-zinc-400 hover:text-white md:hidden" />
               <div className="flex items-center gap-2 text-white font-medium cursor-pointer hover:bg-zinc-800/50 px-2 py-1 rounded-md transition-colors">
-                <span>Version 2.1</span>
+                <span>{selectedProvider ? selectedProvider.model : 'Select Model'}</span>
                 <svg className="w-4 h-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
@@ -111,8 +113,8 @@ export default function Home() {
             )}
 
             {currentView === 'settings' && (
-              <div className="flex-1 flex items-center justify-center text-zinc-500">
-                Settings View (Coming Soon)
+              <div className="flex-1 overflow-y-auto">
+                <SettingsView />
               </div>
             )}
           </div>

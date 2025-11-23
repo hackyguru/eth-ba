@@ -24,7 +24,7 @@ export const ProvidersView = () => {
     const handleDiscovery = (message: WakuMessage) => {
       if (!mounted || !message.metadata) return;
 
-      const { providerId, model, price, walletAddress } = message.metadata;
+      const { providerId, model, price, walletAddress, publicKey } = message.metadata;
       
       if (providerId && model && price && walletAddress) {
         setProviders(prev => {
@@ -36,16 +36,18 @@ export const ProvidersView = () => {
               ...p,
               lastSeen: Date.now(),
               pricePerPrompt: price,
-              model
+              model,
+              publicKey // Update public key if it changed
             } : p);
           }
           // Add new
           return [...prev, {
             id: providerId,
-            name: `Node ${providerId.substring(0, 6)}...`,
+            name: providerId,
             model,
             pricePerPrompt: price,
             walletAddress,
+            publicKey, // Store public key
             lastSeen: Date.now(),
             rating: 4.8 + (Math.random() * 0.2),
             latency: 100 + Math.floor(Math.random() * 200)
@@ -161,7 +163,7 @@ export const ProvidersView = () => {
 
                   <div className="pt-4 mt-2 border-t border-zinc-800/50">
                     <Button 
-                      onClick={() => selectProvider(provider)}
+                      onClick={() => isSelected ? selectProvider(null) : selectProvider(provider)}
                       className={`w-full h-9 font-medium transition-colors
                         ${isSelected 
                           ? 'bg-[#00ffa3] hover:bg-[#00ffa3]/90 text-black' 
@@ -171,7 +173,7 @@ export const ProvidersView = () => {
                       {isSelected ? (
                         <>
                           <Check className="w-4 h-4 mr-2" />
-                          Selected
+                          Deselect Node
                         </>
                       ) : (
                         'Select Node'

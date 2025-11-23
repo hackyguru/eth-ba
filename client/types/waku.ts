@@ -25,6 +25,7 @@ export interface ProviderProfile {
   model: string;
   pricePerPrompt: string;
   walletAddress: string;
+  publicKey?: string; // Added for ROFL/TEE Encryption
   lastSeen: number;
   rating?: number;
   latency?: number;

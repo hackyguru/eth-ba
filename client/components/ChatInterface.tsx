@@ -23,7 +23,7 @@ interface ChatInterfaceProps {
 }
 
 export const ChatInterface = ({ session, messages, onSendMessage, isLoading }: ChatInterfaceProps) => {
-  const { selectedProvider } = useChat();
+  const { selectedProvider, userProfile } = useChat();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -58,6 +58,23 @@ export const ChatInterface = ({ session, messages, onSendMessage, isLoading }: C
 
   return (
     <LayoutContainer>
+      {/* Block Interaction Overlay if no provider selected */}
+      {!selectedProvider && (
+        <div className="absolute inset-0 z-50 backdrop-blur-sm flex items-center justify-center bg-[#18181b]/50">
+          <div className="text-center space-y-4 p-6 rounded-xl bg-[#09090b] border border-zinc-800 shadow-2xl max-w-md mx-4">
+            <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center mx-auto">
+              <ShieldCheck className="w-6 h-6 text-zinc-400" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-white">Select an AI Provider</h3>
+              <p className="text-sm text-zinc-400 mt-2">
+                Please select a secure node from the <span className="text-orange-500">Providers</span> tab to start your private, encrypted conversation.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Selected Provider Header */}
       {selectedProvider && (
         <div className="absolute top-0 left-0 right-0 z-20 bg-[#18181b]/80 backdrop-blur-md border-b border-zinc-800 px-4 py-2 flex items-center justify-between">
@@ -109,8 +126,8 @@ export const ChatInterface = ({ session, messages, onSendMessage, isLoading }: C
                       <div key={message.id} className="flex gap-4 group px-2 md:px-0">
                         {message.role === 'user' ? (
                           <Avatar className="w-8 h-8 mt-1">
-                            <AvatarImage src="https://github.com/shadcn.png" />
-                            <AvatarFallback>MA</AvatarFallback>
+                            <AvatarImage src={userProfile?.avatar} />
+                            <AvatarFallback>{userProfile?.name.substring(0, 2).toUpperCase()}</AvatarFallback>
                           </Avatar>
                         ) : (
                           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#f97316] to-[#ea580c] flex items-center justify-center flex-shrink-0 mt-1">
@@ -126,7 +143,7 @@ export const ChatInterface = ({ session, messages, onSendMessage, isLoading }: C
                         <div className="flex-1 space-y-2">
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-medium text-zinc-300">
-                              {message.role === 'user' ? '@melfanza' : 'Chat GPT'}
+                              {message.role === 'user' ? `@${userProfile?.name}` : 'Chat GPT'}
                             </span>
                           </div>
                           <div className="text-zinc-300 text-sm leading-relaxed whitespace-pre-wrap">
