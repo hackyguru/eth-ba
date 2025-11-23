@@ -1,0 +1,49 @@
+---
+version: "2.0"
+
+services:
+  privacy-provider:
+    image: ghcr.io/yourusername/privacyai-provider:latest
+    expose:
+      - port: 8080
+        as: 80
+        to:
+          - global: true
+    env:
+      - WAKU_REQUEST_TOPIC=/privacyai/1/chat-request/proto
+      - WAKU_RESPONSE_TOPIC=/privacyai/1/chat-response/proto
+      - PROVIDER_PRICE=0.001 TEST
+      - PROVIDER_WALLET=0x742d35Cc6634C0532925a3b844Bc454e4438f44e
+      - AI_PROVIDER=ollama
+      - AI_MODEL=tinyllama:latest
+      # Note: In a real deployment, you might need to bundle the model 
+      # or use a base image that includes Ollama.
+
+profiles:
+  compute:
+    privacy-provider:
+      resources:
+        cpu:
+          units: 2.0
+        memory:
+          size: 4Gi
+        storage:
+          size: 10Gi
+  placement:
+    dcloud:
+      attributes:
+        host: akash
+      signedBy:
+        anyOf:
+          - "akash1365yvmc4s7awdyj3n2sav7xfx76adc6dnmlx63"
+      pricing:
+        privacy-provider:
+          denom: uakt
+          amount: 1000
+
+deployment:
+  privacy-provider:
+    dcloud:
+      profile: privacy-provider
+      count: 1
+

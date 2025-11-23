@@ -136,7 +136,9 @@ export const ProvidersView = () => {
                       </div>
                       <div>
                         <CardTitle className="text-base text-white group-hover:text-orange-500 transition-colors">
-                          {provider.name}
+                          {provider.name.length > 10 
+                            ? `${provider.name.substring(0, 4)}...${provider.name.substring(provider.name.length - 4)}`
+                            : provider.name}
                         </CardTitle>
                         <div className="flex items-center gap-1.5 text-xs text-zinc-500 mt-1">
                           <ShieldCheck className="w-3 h-3 text-orange-500" />
