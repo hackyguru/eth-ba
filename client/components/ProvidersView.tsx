@@ -167,10 +167,10 @@ export const ProvidersView = () => {
                     </div>
                   </div>
 
-                  <div className="pt-4 mt-2 border-t border-zinc-800/50">
+                  <div className="pt-4 mt-2 border-t border-zinc-800/50 flex items-center justify-between gap-2">
                     <Button 
                       onClick={() => isSelected ? selectProvider(null) : selectProvider(provider)}
-                      className={`w-full h-9 font-medium transition-colors
+                      className={`flex-1 h-9 font-medium transition-colors
                         ${isSelected 
                           ? 'bg-orange-600 hover:bg-orange-700 text-white' 
                           : 'bg-white hover:bg-zinc-200 text-black'
@@ -185,6 +185,19 @@ export const ProvidersView = () => {
                         'Select Node'
                       )}
                     </Button>
+                    {provider.apiMetadataCid && (
+                      <Button 
+                        variant="outline"
+                        className="h-9 px-3 border-zinc-700 text-zinc-300 hover:text-white hover:bg-zinc-800"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(`https://ipfs.io/ipfs/${provider.apiMetadataCid}`, '_blank');
+                        }}
+                        title="View Decentralized API Metadata"
+                      >
+                        <Globe className="w-4 h-4" />
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>

@@ -6,6 +6,7 @@ import { WakuMessage, ProviderProfile } from '../types/waku';
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { parseEther } from 'viem';
 import EthCrypto from 'eth-crypto';
+import { useSynapse } from './useSynapse';
 
 const initialState: ChatState = {
   sessions: [],
@@ -30,7 +31,7 @@ interface ChatContextType {
   selectProvider: (provider: ProviderProfile | null) => void;
   updateUserProfile: (profile: Partial<UserProfile>) => void;
   deleteSession: (sessionId: string) => void;
-  sendMessage: (content: string) => Promise<void>;
+  sendMessage: (content: string, file?: File) => Promise<void>;
   wakuConnected: boolean;
   wakuConnecting: boolean;
   wakuError: string | null;
@@ -47,6 +48,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
   const { authenticated } = usePrivy();
   const { wallets } = useWallets();
   const wallet = wallets[0];
+  const { uploadFile } = useSynapse();
 
   // Ensure userProfile exists if loading from old local storage
   useEffect(() => {
@@ -180,15 +182,41 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [isConnected, subscribeToResponses, setChatState]);
 
-  const sendMessage = useCallback(async (content: string) => {
-    if (!chatState.currentSessionId || !content.trim()) return;
+  const sendMessage = useCallback(async (content: string, file?: File) => {
+    if (!chatState.currentSessionId || (!content.trim() && !file)) return;
 
     const sessionId = chatState.currentSessionId;
     const userMessageId = Date.now().toString();
+    
+    let messageText = content.trim();
+    let contextCid: string | undefined;
+    
+    // Filecoin RAG - Upload file and get CID
+    if (file) {
+      try {
+        console.log('Uploading file to Filecoin...');
+        const result = await uploadFile(file);
+        if (result) {
+          contextCid = result.cid;
+          console.log('File uploaded to Filecoin:', contextCid);
+          // Append a small note to message text indicating file is attached
+          messageText = `${messageText}\n\n[Attached File: ${file.name} (CID: ${contextCid})]`;
+        }
+      } catch (err) {
+        console.warn('Filecoin upload failed, falling back to Lite RAG (Text Append):', err);
+        try {
+           const text = await file.text();
+           messageText = `${messageText}\n\n---\nContext from ${file.name}:\n${text}\n---`;
+        } catch (readErr) {
+           console.error('Failed to read file fallback:', readErr);
+        }
+      }
+    }
+
     const userMessage: ChatMessage = {
       id: userMessageId,
       sessionId,
-      content: content.trim(),
+      content: messageText,
       role: 'user',
       timestamp: new Date().toISOString(),
     };
@@ -199,7 +227,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
       
       let updatedSessions = prevState.sessions;
       if (isFirstMessage) {
-        const sessionTitle = content.slice(0, 50) + (content.length > 50 ? '...' : '');
+        const sessionTitle = messageText.slice(0, 50) + (messageText.length > 50 ? '...' : '');
         updatedSessions = prevState.sessions.map(session =>
           session.id === sessionId
             ? { ...session, title: sessionTitle, updatedAt: new Date().toISOString() }
@@ -310,7 +338,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     if (isConnected) {
-      let messageContent = content.trim();
+      let messageContent = messageText;
 
       // 🔒 ENCRYPT CONTENT (ROFL/TEE)
       if (provider?.publicKey) {
@@ -336,7 +364,8 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
         metadata: {
           txHash,
           providerId: provider?.id,
-          walletAddress: wallet?.address
+          walletAddress: wallet?.address,
+          contextCid
         }
       };
 
@@ -345,7 +374,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     } else {
       setIsLoading(false);
     }
-  }, [chatState.currentSessionId, chatState.selectedProvider, setChatState, isConnected, sendWakuMessage, authenticated, wallet]);
+  }, [chatState.currentSessionId, chatState.selectedProvider, setChatState, isConnected, sendWakuMessage, authenticated, wallet, uploadFile]);
 
   const currentSession = chatState.sessions.find(session => session.id === chatState.currentSessionId);
   const currentMessages = chatState.currentSessionId ? chatState.messages[chatState.currentSessionId] || [] : [];
