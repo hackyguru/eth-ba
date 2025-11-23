@@ -13,68 +13,37 @@ const parseMessageContent = (content: string) => {
   const parts = [];
   let currentIndex = 0;
   
-  // Regex to split by <think> tags AND File Attachment pattern
-  // Combined regex is complex, so let's do a two-pass or keep it simple.
-  // Let's just handle <think> first, then process "normal" parts for files.
-  
+  // Find all <think> and </think> tags
   const thinkRegex = /<think>([\s\S]*?)<\/think>/g;
   let match;
   
   while ((match = thinkRegex.exec(content)) !== null) {
+    // Add content before the <think> tag
     if (match.index > currentIndex) {
       const beforeThink = content.slice(currentIndex, match.index);
       if (beforeThink.trim()) {
-        parts.push(...parseAttachments(beforeThink));
+        parts.push({ type: 'normal', content: beforeThink });
       }
     }
+    
+    // Add the thinking content
     parts.push({ type: 'think', content: match[1] });
     currentIndex = match.index + match[0].length;
   }
   
+  // Add any remaining content after the last </think> tag
   if (currentIndex < content.length) {
     const afterThink = content.slice(currentIndex);
     if (afterThink.trim()) {
-      parts.push(...parseAttachments(afterThink));
+      parts.push({ type: 'normal', content: afterThink });
     }
   }
   
+  // If no <think> tags found, return the entire content as normal
   if (parts.length === 0) {
-    parts.push(...parseAttachments(content));
+    parts.push({ type: 'normal', content });
   }
   
-  return parts;
-};
-
-const parseAttachments = (text: string) => {
-  const parts = [];
-  const fileRegex = /\[Attached File: (.*?) \(CID: (.*?)\)\]/g;
-  let lastIndex = 0;
-  let match;
-
-  while ((match = fileRegex.exec(text)) !== null) {
-    // Text before match
-    if (match.index > lastIndex) {
-      parts.push({ type: 'normal', content: text.slice(lastIndex, match.index) });
-    }
-    // The Match
-    parts.push({ 
-      type: 'file-attachment', 
-      fileName: match[1], 
-      cid: match[2], 
-      content: match[0] 
-    });
-    lastIndex = match.index + match[0].length;
-  }
-
-  // Remaining text
-  if (lastIndex < text.length) {
-    parts.push({ type: 'normal', content: text.slice(lastIndex) });
-  }
-  
-  if (parts.length === 0) {
-    parts.push({ type: 'normal', content: text });
-  }
-
   return parts;
 };
 
@@ -116,24 +85,6 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
                   <div className="mb-3 p-3 bg-black/20 rounded-lg text-zinc-400 text-xs italic border-l-2 border-[#f97316]/50 text-left">
                     <div className="mb-1 font-semibold uppercase tracking-wider text-[10px] text-[#f97316]">Thinking process</div>
                     {part.content}
-                  </div>
-                ) : part.type === 'file-attachment' ? (
-                  <div className="mb-3 flex items-center gap-2 p-3 bg-orange-950/30 border border-orange-900/50 rounded-lg">
-                    <FileText className="w-5 h-5 text-orange-500" />
-                    <div className="flex-1 overflow-hidden">
-                      <div className="text-sm font-medium text-zinc-200 truncate">{part.fileName}</div>
-                      <div className="text-[10px] text-zinc-500 font-mono truncate">CID: {part.cid}</div>
-                    </div>
-                    <a 
-                      href={`https://ipfs.io/ipfs/${part.cid}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-xs text-orange-400 hover:text-orange-300"
-                    >
-                      <Badge variant="outline" className="border-orange-500/50 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400">
-                        On Filecoin <ExternalLink className="w-3 h-3 ml-1" />
-                      </Badge>
-                    </a>
                   </div>
                 ) : (
                   <div>{part.content}</div>

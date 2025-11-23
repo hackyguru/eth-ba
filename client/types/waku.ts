@@ -12,7 +12,6 @@ export interface WakuMessage {
     txHash?: string; // Added for X402 payment proof
     publicKey?: string; // Added for ROFL/TEE Encryption
     apiMetadataCid?: string; // Added for Filecoin Service Registry
-    contextCid?: string; // Added for Filecoin RAG
   };
 }
 

@@ -6,7 +6,6 @@ import { WakuMessage, ProviderProfile } from '../types/waku';
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { parseEther } from 'viem';
 import EthCrypto from 'eth-crypto';
-import { useSynapse } from './useSynapse';
 
 const initialState: ChatState = {
   sessions: [],
@@ -48,7 +47,6 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
   const { authenticated } = usePrivy();
   const { wallets } = useWallets();
   const wallet = wallets[0];
-  const { uploadFile } = useSynapse();
 
   // Ensure userProfile exists if loading from old local storage
   useEffect(() => {
@@ -189,27 +187,16 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     const userMessageId = Date.now().toString();
     
     let messageText = content.trim();
-    let contextCid: string | undefined;
     
-    // Filecoin RAG - Upload file and get CID
+    // Client-Side "Lite RAG" - Extract text from file and append to prompt
     if (file) {
       try {
-        console.log('Uploading file to Filecoin...');
-        const result = await uploadFile(file);
-        if (result) {
-          contextCid = result.cid;
-          console.log('File uploaded to Filecoin:', contextCid);
-          // Append a small note to message text indicating file is attached
-          messageText = `${messageText}\n\n[Attached File: ${file.name} (CID: ${contextCid})]`;
-        }
+        const text = await file.text();
+        messageText = `${messageText}\n\n---\nContext from ${file.name}:\n${text}\n---`;
+        console.log('File content appended to message');
       } catch (err) {
-        console.warn('Filecoin upload failed, falling back to Lite RAG (Text Append):', err);
-        try {
-           const text = await file.text();
-           messageText = `${messageText}\n\n---\nContext from ${file.name}:\n${text}\n---`;
-        } catch (readErr) {
-           console.error('Failed to read file fallback:', readErr);
-        }
+        console.error('Failed to read file:', err);
+        // Optionally notify user or continue without file
       }
     }
 
@@ -364,8 +351,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
         metadata: {
           txHash,
           providerId: provider?.id,
-          walletAddress: wallet?.address,
-          contextCid
+          walletAddress: wallet?.address
         }
       };
 
@@ -374,7 +360,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     } else {
       setIsLoading(false);
     }
-  }, [chatState.currentSessionId, chatState.selectedProvider, setChatState, isConnected, sendWakuMessage, authenticated, wallet, uploadFile]);
+  }, [chatState.currentSessionId, chatState.selectedProvider, setChatState, isConnected, sendWakuMessage, authenticated, wallet]);
 
   const currentSession = chatState.sessions.find(session => session.id === chatState.currentSessionId);
   const currentMessages = chatState.currentSessionId ? chatState.messages[chatState.currentSessionId] || [] : [];
