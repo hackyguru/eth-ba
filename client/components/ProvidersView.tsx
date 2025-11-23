@@ -5,6 +5,7 @@ import { WakuMessage, ProviderProfile } from '../types/waku';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Globe, Cpu, DollarSign, Clock, ShieldCheck, Check } from 'lucide-react';
 
 export const ProvidersView = () => {
@@ -126,14 +127,17 @@ export const ProvidersView = () => {
               <Card 
                 key={provider.id} 
                 className={`bg-[#18181b] border-zinc-800 transition-all duration-200 group
-                  ${isSelected ? 'border-[#00ffa3] shadow-[0_0_15px_rgba(0,255,163,0.1)]' : 'hover:border-zinc-700'}`}
+                  ${isSelected ? 'border-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.1)]' : 'hover:border-zinc-700'}`}
               >
                 <CardHeader className="pb-3">
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-orange-700 flex items-center justify-center text-white font-bold text-xs">
-                        {provider.name.substring(0, 2).toUpperCase()}
-                      </div>
+                      <Avatar className="w-10 h-10 border border-zinc-700">
+                        <AvatarImage src={`https://api.dicebear.com/7.x/identicon/svg?seed=${provider.id}`} />
+                        <AvatarFallback className="bg-gradient-to-br from-orange-500 to-orange-700 text-white font-bold text-xs">
+                          {provider.name.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
                       <div>
                         <CardTitle className="text-base text-white group-hover:text-orange-500 transition-colors">
                           {provider.name.length > 10 
@@ -168,7 +172,7 @@ export const ProvidersView = () => {
                       onClick={() => isSelected ? selectProvider(null) : selectProvider(provider)}
                       className={`w-full h-9 font-medium transition-colors
                         ${isSelected 
-                          ? 'bg-[#00ffa3] hover:bg-[#00ffa3]/90 text-black' 
+                          ? 'bg-orange-600 hover:bg-orange-700 text-white' 
                           : 'bg-white hover:bg-zinc-200 text-black'
                         }`}
                     >

@@ -58,6 +58,26 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [chatState.userProfile, setChatState]);
 
+  // Update avatar from wallet if default
+  useEffect(() => {
+    if (authenticated && wallet?.address) {
+      setChatState(prev => {
+        const currentProfile = prev.userProfile || initialState.userProfile!;
+        // Only update if avatar is default shadcn image
+        if (currentProfile.avatar === 'https://github.com/shadcn.png') {
+          return {
+            ...prev,
+            userProfile: {
+              ...currentProfile,
+              avatar: `https://effigy.im/a/${wallet.address}.svg`
+            }
+          };
+        }
+        return prev;
+      });
+    }
+  }, [authenticated, wallet?.address, setChatState]);
+
   const updateUserProfile = useCallback((profile: Partial<UserProfile>) => {
     setChatState(prev => ({
       ...prev,
@@ -336,6 +356,7 @@ export const ChatProvider = ({ children }: { children: React.ReactNode }) => {
       currentSession,
       currentMessages,
       selectedProvider: chatState.selectedProvider,
+      userProfile: chatState.userProfile || initialState.userProfile!,
       isLoading,
       createNewSession,
       selectSession,

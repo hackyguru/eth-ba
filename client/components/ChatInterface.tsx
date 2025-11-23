@@ -8,7 +8,8 @@ import {
   Lightbulb, 
   BookOpen, 
   RotateCcw,
-  ShieldCheck
+  ShieldCheck,
+  X
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent } from '@/components/ui/card';
@@ -23,7 +24,7 @@ interface ChatInterfaceProps {
 }
 
 export const ChatInterface = ({ session, messages, onSendMessage, isLoading }: ChatInterfaceProps) => {
-  const { selectedProvider, userProfile } = useChat();
+  const { selectedProvider, userProfile, selectProvider } = useChat();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -82,12 +83,25 @@ export const ChatInterface = ({ session, messages, onSendMessage, isLoading }: C
             <div className="w-2 h-2 rounded-full bg-[#00ffa3] animate-pulse"></div>
             <span className="text-xs text-zinc-400">Connected to:</span>
             <span className="text-sm font-medium text-white flex items-center gap-1.5">
-              {selectedProvider.name}
+              {selectedProvider.name.length > 10 
+                ? `${selectedProvider.name.substring(0, 4)}...${selectedProvider.name.substring(selectedProvider.name.length - 4)}`
+                : selectedProvider.name}
               <ShieldCheck className="w-3 h-3 text-[#00ffa3]" />
             </span>
           </div>
-          <div className="text-xs text-zinc-500">
-            {selectedProvider.pricePerPrompt} / msg
+          <div className="flex items-center gap-3">
+            <div className="text-xs text-zinc-500">
+              {selectedProvider.pricePerPrompt} / msg
+            </div>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-6 w-6 text-zinc-400 hover:text-white hover:bg-zinc-800"
+              onClick={() => selectProvider(null)}
+              title="Disconnect from Node"
+            >
+              <X className="w-4 h-4" />
+            </Button>
           </div>
         </div>
       )}
@@ -143,7 +157,7 @@ export const ChatInterface = ({ session, messages, onSendMessage, isLoading }: C
                         <div className="flex-1 space-y-2">
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-medium text-zinc-300">
-                              {message.role === 'user' ? `@${userProfile?.name}` : 'Chat GPT'}
+                              {message.role === 'user' ? 'You' : 'Chat GPT'}
                             </span>
                           </div>
                           <div className="text-zinc-300 text-sm leading-relaxed whitespace-pre-wrap">
