@@ -1,11 +1,10 @@
 import { 
   MessageSquare, 
-  Search as SearchIcon, 
-  LayoutGrid, 
   Settings, 
-  HelpCircle, 
   Plus,
-  Trash2
+  Trash2,
+  Wallet,
+  Globe
 } from 'lucide-react';
 import { ChatSession } from '../types/chat';
 import { useState } from 'react';
@@ -47,11 +46,10 @@ export const ChatSidebar = ({
   };
 
   const navigationItems = [
-    { name: 'Chats', icon: MessageSquare, active: true },
-    { name: 'Search', icon: SearchIcon, active: false },
-    { name: 'Categories', icon: LayoutGrid, active: false },
+    { name: 'Chat', icon: MessageSquare, active: true },
+    { name: 'Providers', icon: Globe, active: false },
+    { name: 'Wallet', icon: Wallet, active: false },
     { name: 'Settings', icon: Settings, active: false },
-    { name: 'Updates & FAQ', icon: HelpCircle, active: false },
   ];
 
   return (
@@ -66,7 +64,7 @@ export const ChatSidebar = ({
               <line x1="15" y1="9" x2="15.01" y2="9" />
             </svg>
           </div>
-          <span className="text-lg font-semibold text-white group-data-[collapsible=icon]:hidden tracking-tight">Chat GPT</span>
+          <span className="text-lg font-semibold text-white group-data-[collapsible=icon]:hidden tracking-tight">GP2PT</span>
         </div>
         
         <SidebarMenu>

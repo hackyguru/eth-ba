@@ -40,7 +40,7 @@ export const WakuStatus = ({ isConnected, isConnecting, error }: WakuStatusProps
     return (
       <Badge variant="outline" className="gap-1.5 py-1.5 border-zinc-700 bg-[#27272a]">
         <div className="w-2 h-2 rounded-full shadow-[0_0_8px_rgba(37,99,235,0.5)] bg-[#2563EB]"></div>
-        <span className="text-zinc-200">Connected</span>
+        <span className="text-zinc-200">p2p connected</span>
       </Badge>
     );
   }

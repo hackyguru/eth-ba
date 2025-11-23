@@ -6,8 +6,7 @@ import { WakuStatus } from '../components/WakuStatus';
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Download, Sun, Bell } from "lucide-react";
+import { Download } from "lucide-react";
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
@@ -73,20 +72,11 @@ export default function Home() {
             </div>
             
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-white w-8 h-8">
-                  <Sun className="w-5 h-5" />
-                </Button>
-                <Button variant="ghost" size="icon" className="text-zinc-400 hover:text-white w-8 h-8">
-                  <Bell className="w-5 h-5" />
-                </Button>
-                <Avatar className="w-8 h-8 border border-zinc-700">
-                  <AvatarImage src="https://github.com/shadcn.png" />
-                  <AvatarFallback>CN</AvatarFallback>
-                </Avatar>
-              </div>
-              
-              <div className="h-6 w-px bg-zinc-800 mx-2 hidden md:block"></div>
+              <WakuStatus
+                isConnected={wakuConnected}
+                isConnecting={wakuConnecting}
+                error={wakuError}
+              />
               
               <Button 
                 variant="outline" 
@@ -95,19 +85,11 @@ export default function Home() {
                 <Download className="w-4 h-4" />
                 Export
               </Button>
-
-              <div className="md:hidden">
-                 <WakuStatus
-                  isConnected={wakuConnected}
-                  isConnecting={wakuConnecting}
-                  error={wakuError}
-                />
-              </div>
             </div>
           </header>
 
           {/* Main Chat Content */}
-          <div className="flex-1 flex flex-col min-h-0 bg-[#09090b] px-4 md:px-8 pb-4 md:pb-8">
+          <div className="flex-1 flex flex-col min-h-0 bg-[#09090b] px-2 pb-4">
             <ChatInterface
               session={currentSession}
               messages={currentMessages}
